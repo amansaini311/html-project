@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aman University DBMS</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #1a1a1a;
+      --muted: #666;
+      --hint: #aaa;
+      --surf: #ffffff;
+      --raised: #f5f5f3;
+      --border: rgba(0,0,0,0.12);
+      --border-em: rgba(0,0,0,0.22);
+      --r-md: 8px;
+      --r-lg: 12px;
+      --info-bg: #e6f1fb;
+      --info-text: #185fa5;
+      --success-bg: #eaf3de;
+      --success-text: #3b6d11;
+      --danger-bg: #fcebeb;
+      --danger-text: #a32d2d;
+      --danger-border: rgba(163,45,45,0.35);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0ede8;
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    #app { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .card {
+      background: var(--surf);
+      border: 0.5px solid var(--border-em);
+      border-radius: var(--r-lg);
+      padding: 1.5rem;
+    }
+
+    h1 { font-size: 22px; font-weight: 500; }
+    h2 { font-size: 18px; font-weight: 500; margin-bottom: 1rem; }
+    h3 { font-size: 16px; font-weight: 500; }
+
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .field input {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 14px;
+      border: 0.5px solid var(--border-em);
+      border-radius: var(--r-md);
+      background: var(--surf);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .field input:focus { border-color: #888; box-shadow: 0 0 0 2px rgba(0,0,0,0.07); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: var(--r-md);
+      border: 0.5px solid var(--border-em);
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      transition: background 0.15s;
+      font-family: inherit;
+    }
+    .btn:hover { background: var(--raised); }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .btn-primary:hover { opacity: 0.85; background: var(--ink); }
+    .btn-danger { border-color: var(--danger-border); color: var(--danger-text); }
+    .btn-danger:hover { background: var(--danger-bg); }
+    .btn-sm { font-size: 12px; padding: 5px 10px; }
+
+    .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .col { flex: 1; min-width: 120px; }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-weight: 500;
+    }
+    .badge-info { background: var(--info-bg); color: var(--info-text); }
+    .badge-success { background: var(--success-bg); color: var(--success-text); }
+
+    .stat {
+      background: var(--raised);
+      border-radius: var(--r-md);
+      padding: 1rem;
+    }
+    .stat .val { font-size: 24px; font-weight: 500; }
+    .stat .lbl { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    .msg {
+      padding: 10px 14px;
+      border-radius: var(--r-md);
+      font-size: 13px;
+      margin: 8px 0;
+    }
+    .msg-ok { background: var(--success-bg); color: var(--success-text); }
+    .msg-err { background: var(--danger-bg); color: var(--danger-text); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      text-align: left;
+      font-weight: 500;
+      font-size: 12px;
+      color: var(--muted);
+      padding: 8px 10px;
+      border-bottom: 0.5px solid var(--border);
+    }
+    td {
+      padding: 9px 10px;
+      border-bottom: 0.5px solid var(--border);
+      color: var(--ink);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--raised); }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--info-bg);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--info-text);
+      flex-shrink: 0;
+    }
+    .avatar-green { background: var(--success-bg); color: var(--success-text); }
+
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      padding: 3px;
+      background: var(--raised);
+      border-radius: var(--r-md);
+      width: fit-content;
+      margin-bottom: 1.25rem;
+    }
+    .tab {
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: calc(var(--r-md) - 2px);
+      cursor: pointer;
+      color: var(--muted);
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      transition: background 0.12s;
+    }
+    .tab.active {
+      background: var(--surf);
+      color: var(--ink);
+      border: 0.5px solid var(--border);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 0.5px solid var(--border);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .empty { text-align: center; padding: 2rem; color: var(--hint); font-size: 13px; }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surf);
+      border-radius: var(--r-lg);
+      padding: 1.5rem;
+      width: 400px;
+      max-width: 94vw;
+      border: 0.5px solid var(--border-em);
+    }
+    .modal h3 { margin-bottom: 1rem; }
+
+    .search-bar { display: flex; gap: 8px; margin-bottom: 1rem; }
+    .search-bar input {
+      flex: 1;
+      padding: 8px 10px;
+      font-size: 14px;
+      border: 0.5px solid var(--border-em);
+      border-radius: var(--r-md);
+      background: var(--surf);
+      color: var(--ink);
+      outline: none;
+      font-family: inherit;
+    }
+    .search-bar input:focus { border-color: #888; }
+
+    #logged-as { font-weight: 500; font-size: 13px; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .section-header h2 { margin-bottom: 0; }
+
+    .table-card { background: var(--surf); border: 0.5px solid var(--border-em); border-radius: var(--r-lg); overflow: hidden; }
+
+    .login-wrap { max-width: 360px; margin: 3rem auto; }
+    .login-brand { text-align: center; margin-bottom: 2rem; }
+    .login-brand .logo { font-size: 28px; font-weight: 500; }
+    .login-brand .sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    .auth-tab-bar { width: 100%; }
+    .auth-tab-bar .tab { flex: 1; text-align: center; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- LOGIN -->
+  <div id="screen-login" class="screen active">
+    <div class="login-wrap">
+      <div class="login-brand">
+        <div class="logo">Aman University</div>
+        <div class="sub">College Management System</div>
+      </div>
+      <div class="card">
+        <div class="tab-bar auth-tab-bar" style="width:100%;margin-bottom:1.25rem">
+          <button class="tab active" style="flex:1" onclick="switchAuthTab('login')">Login</button>
+          <button class="tab" style="flex:1" onclick="switchAuthTab('signup')">Sign up</button>
+        </div>
+        <div id="auth-msg"></div>
+        <div id="login-form">
+          <div class="field"><label>Username</label><input type="text" id="l-user" placeholder="Enter username" /></div>
+          <div class="field"><label>Password</label><input type="password" id="l-pass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()" /></div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="doLogin()">Login</button>
+          <p style="font-size:12px;color:var(--hint);text-align:center;margin-top:10px">Default: admin / admin123</p>
+        </div>
+        <div id="signup-form" style="display:none">
+          <div class="field"><label>Username</label><input type="text" id="s-user" placeholder="Choose a username" /></div>
+          <div class="field"><label>Password</label><input type="password" id="s-pass" placeholder="Choose a password" onkeydown="if(event.key==='Enter')doSignup()" /></div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="doSignup()">Create account</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="screen-main" class="screen">
+    <div class="nav">
+      <div>
+        <h1>Aman University</h1>
+        <span style="font-size:13px;color:var(--muted)">College Management System</span>
+      </div>
+      <div class="row" style="align-items:center;gap:10px">
+        <span id="logged-as" class="badge badge-info"></span>
+        <button class="btn btn-sm" onclick="doLogout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat"><div class="val" id="stat-students">0</div><div class="lbl">Students</div></div>
+      <div class="stat"><div class="val" id="stat-teachers">0</div><div class="lbl">Teachers</div></div>
+      <div class="stat"><div class="val" id="stat-depts">0</div><div class="lbl">Departments</div></div>
+      <div class="stat"><div class="val" id="stat-users">0</div><div class="lbl">Users</div></div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab active" onclick="switchMainTab('students')">Students</button>
+      <button class="tab" onclick="switchMainTab('teachers')">Teachers</button>
+    </div>
+
+    <!-- STUDENTS -->
+    <div id="tab-students">
+      <div class="section-header">
+        <h2>Student records</h2>
+        <button class="btn btn-primary btn-sm" onclick="openModal('add-student')">+ Add student</button>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="s-search" placeholder="Search by name, roll no, or department..." oninput="renderStudents()" />
+      </div>
+      <div class="table-card">
+        <div id="student-table-wrap"><div class="empty">No students yet. Add one to get started.</div></div>
+      </div>
+    </div>
+
+    <!-- TEACHERS -->
+    <div id="tab-teachers" style="display:none">
+      <div class="section-header">
+        <h2>Teacher records</h2>
+        <button class="btn btn-primary btn-sm" onclick="openModal('add-teacher')">+ Add teacher</button>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="t-search" placeholder="Search by name or department..." oninput="renderTeachers()" />
+      </div>
+      <div class="table-card">
+        <div id="teacher-table-wrap"><div class="empty">No teachers yet. Add one to get started.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-add-student">
+  <div class="modal">
+    <h3>Add student</h3>
+    <div id="as-msg"></div>
+    <div class="field"><label>Full name</label><input type="text" id="as-name" placeholder="e.g. Aman Saini" /></div>
+    <div class="row">
+      <div class="col field"><label>Department</label><input type="text" id="as-dept" placeholder="e.g. CS" /></div>
+      <div class="col field"><label>Year</label><input type="number" id="as-year" min="1" max="6" placeholder="1" /></div>
+    </div>
+    <div class="field"><label>Roll number</label><input type="text" id="as-roll" placeholder="e.g. 2024CS001" /></div>
+    <div class="field"><label>Email</label><input type="email" id="as-email" placeholder="student@aman.edu" /></div>
+    <div class="row" style="margin-top:1rem;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeModal('add-student')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="addStudent()">Add student</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-teacher">
+  <div class="modal">
+    <h3>Add teacher</h3>
+    <div id="at-msg"></div>
+    <div class="field"><label>Full name</label><input type="text" id="at-name" placeholder="e.g. Dr. Sharma" /></div>
+    <div class="row">
+      <div class="col field"><label>Department</label><input type="text" id="at-dept" placeholder="e.g. CS" /></div>
+      <div class="col field"><label>Salary (&#8377;)</label><input type="number" id="at-sal" placeholder="50000" /></div>
+    </div>
+    <div class="field"><label>Email</label><input type="email" id="at-email" placeholder="teacher@aman.edu" /></div>
+    <div class="row" style="margin-top:1rem;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeModal('add-teacher')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="addTeacher()">Add teacher</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-edit-student">
+  <div class="modal">
+    <h3>Edit student</h3>
+    <div id="es-msg"></div>
+    <div class="field"><label>Full name</label><input type="text" id="es-name" /></div>
+    <div class="row">
+      <div class="col field"><label>Department</label><input type="text" id="es-dept" /></div>
+      <div class="col field"><label>Year</label><input type="number" id="es-year" min="1" max="6" /></div>
+    </div>
+    <div class="field"><label>Roll number</label><input type="text" id="es-roll" /></div>
+    <div class="field"><label>Email</label><input type="email" id="es-email" /></div>
+    <div class="row" style="margin-top:1rem;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeModal('edit-student')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveEditStudent()">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-edit-teacher">
+  <div class="modal">
+    <h3>Edit teacher</h3>
+    <div id="et-msg"></div>
+    <div class="field"><label>Full name</label><input type="text" id="et-name" /></div>
+    <div class="row">
+      <div class="col field"><label>Department</label><input type="text" id="et-dept" /></div>
+      <div class="col field"><label>Salary (&#8377;)</label><input type="number" id="et-sal" /></div>
+    </div>
+    <div class="field"><label>Email</label><input type="email" id="et-email" /></div>
+    <div class="row" style="margin-top:1rem;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeModal('edit-teacher')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveEditTeacher()">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  var db = {
+    users: [{ username: 'admin', password: 'admin123' }],
+    students: [],
+    teachers: [],
+    nextSid: 1,
+    nextTid: 1
+  };
+  var currentUser = null;
+  var editingStudentId = null;
+  var editingTeacherId = null;
+
+  function initials(name) {
+    return name.trim().split(' ').slice(0,2).map(function(w){ return w[0]||''; }).join('').toUpperCase() || '?';
+  }
+
+  function showMsg(msg, where, type) {
+    var el = document.getElementById(where);
+    el.innerHTML = '<div class="msg msg-'+type+'">'+msg+'</div>';
+    setTimeout(function(){ el.innerHTML=''; }, 3000);
+  }
+
+  function switchAuthTab(tab) {
+    document.getElementById('login-form').style.display = tab==='login' ? 'block' : 'none';
+    document.getElementById('signup-form').style.display = tab==='signup' ? 'block' : 'none';
+    var tabs = document.querySelectorAll('#screen-login .tab');
+    tabs[0].classList.toggle('active', tab==='login');
+    tabs[1].classList.toggle('active', tab==='signup');
+    document.getElementById('auth-msg').innerHTML = '';
+  }
+
+  function doLogin() {
+    var u = document.getElementById('l-user').value.trim();
+    var p = document.getElementById('l-pass').value;
+    var found = db.users.find(function(x){ return x.username===u && x.password===p; });
+    if (!found) { showMsg('Invalid username or password.', 'auth-msg', 'err'); return; }
+    currentUser = u;
+    document.getElementById('logged-as').textContent = u;
+    goTo('main');
+  }
+
+  function doSignup() {
+    var u = document.getElementById('s-user').value.trim();
+    var p = document.getElementById('s-pass').value;
+    if (!u||!p) { showMsg('Please fill all fields.', 'auth-msg', 'err'); return; }
+    if (db.users.find(function(x){ return x.username===u; })) { showMsg('Username already taken.', 'auth-msg', 'err'); return; }
+    db.users.push({ username:u, password:p });
+    showMsg('Account created! Please login.', 'auth-msg', 'ok');
+    switchAuthTab('login');
+    document.getElementById('l-user').value = u;
+  }
+
+  function doLogout() {
+    currentUser = null;
+    goTo('login');
+  }
+
+  function goTo(screen) {
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById('screen-'+screen).classList.add('active');
+    if (screen==='main') updateStats();
+  }
+
+  function switchMainTab(tab) {
+    document.getElementById('tab-students').style.display = tab==='students' ? 'block' : 'none';
+    document.getElementById('tab-teachers').style.display = tab==='teachers' ? 'block' : 'none';
+    var tabs = document.querySelectorAll('#screen-main > .tab-bar .tab');
+    tabs[0].classList.toggle('active', tab==='students');
+    tabs[1].classList.toggle('active', tab==='teachers');
+  }
+
+  function updateStats() {
+    document.getElementById('stat-students').textContent = db.students.length;
+    document.getElementById('stat-teachers').textContent = db.teachers.length;
+    var depts = new Set(
+      db.students.map(function(s){ return s.dept; })
+      .concat(db.teachers.map(function(t){ return t.dept; }))
+      .filter(Boolean)
+    );
+    document.getElementById('stat-depts').textContent = depts.size;
+    document.getElementById('stat-users').textContent = db.users.length;
+  }
+
+  function openModal(id) { document.getElementById('modal-'+id).classList.add('open'); }
+  function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
+
+  function addStudent() {
+    var name  = document.getElementById('as-name').value.trim();
+    var dept  = document.getElementById('as-dept').value.trim();
+    var year  = parseInt(document.getElementById('as-year').value);
+    var roll  = document.getElementById('as-roll').value.trim();
+    var email = document.getElementById('as-email').value.trim();
+    if (!name||!dept||!roll||!email||!year) { showMsg('All fields are required.','as-msg','err'); return; }
+    if (db.students.find(function(s){ return s.roll===roll; })) { showMsg('Roll number already exists.','as-msg','err'); return; }
+    db.students.push({ id: db.nextSid++, name:name, dept:dept, roll:roll, year:year, email:email });
+    closeModal('add-student');
+    ['as-name','as-dept','as-year','as-roll','as-email'].forEach(function(id){ document.getElementById(id).value=''; });
+    renderStudents(); updateStats();
+  }
+
+  function renderStudents() {
+    var q = (document.getElementById('s-search').value||'').toLowerCase();
+    var list = db.students.filter(function(s){
+      return s.name.toLowerCase().includes(q) || s.roll.toLowerCase().includes(q) || s.dept.toLowerCase().includes(q);
+    });
+    var wrap = document.getElementById('student-table-wrap');
+    if (!list.length) { wrap.innerHTML='<div class="empty">No students found.</div>'; return; }
+    var rows = list.map(function(s){
+      return '<tr>' +
+        '<td><div class="avatar">'+initials(s.name)+'</div></td>' +
+        '<td style="font-weight:500">'+esc(s.name)+'</td>' +
+        '<td><span class="badge badge-info">'+esc(s.roll)+'</span></td>' +
+        '<td>'+esc(s.dept)+'</td>' +
+        '<td>Year '+s.year+'</td>' +
+        '<td style="color:var(--muted)">'+esc(s.email)+'</td>' +
+        '<td><div class="row" style="gap:6px">' +
+          '<button class="btn btn-sm" onclick="editStudent('+s.id+')">Edit</button>' +
+          '<button class="btn btn-sm btn-danger" onclick="deleteStudent('+s.id+')">Delete</button>' +
+        '</div></td>' +
+      '</tr>';
+    }).join('');
+    wrap.innerHTML = '<table><thead><tr><th></th><th>Name</th><th>Roll no</th><th>Dept</th><th>Year</th><th>Email</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  }
+
+  function editStudent(id) {
+    var s = db.students.find(function(x){ return x.id===id; });
+    editingStudentId = id;
+    document.getElementById('es-name').value = s.name;
+    document.getElementById('es-dept').value = s.dept;
+    document.getElementById('es-year').value = s.year;
+    document.getElementById('es-roll').value = s.roll;
+    document.getElementById('es-email').value = s.email;
+    openModal('edit-student');
+  }
+
+  function saveEditStudent() {
+    var s = db.students.find(function(x){ return x.id===editingStudentId; });
+    var newRoll = document.getElementById('es-roll').value.trim();
+    if (db.students.find(function(x){ return x.id!==editingStudentId && x.roll===newRoll; })) {
+      showMsg('Roll number already in use.','es-msg','err'); return;
+    }
+    s.name  = document.getElementById('es-name').value.trim();
+    s.dept  = document.getElementById('es-dept').value.trim();
+    s.year  = parseInt(document.getElementById('es-year').value);
+    s.roll  = newRoll;
+    s.email = document.getElementById('es-email').value.trim();
+    closeModal('edit-student');
+    renderStudents(); updateStats();
+  }
+
+  function deleteStudent(id) {
+    if (!confirm('Delete this student? This cannot be undone.')) return;
+    db.students = db.students.filter(function(s){ return s.id!==id; });
+    renderStudents(); updateStats();
+  }
+
+  function addTeacher() {
+    var name   = document.getElementById('at-name').value.trim();
+    var dept   = document.getElementById('at-dept').value.trim();
+    var salary = parseInt(document.getElementById('at-sal').value);
+    var email  = document.getElementById('at-email').value.trim();
+    if (!name||!dept||!email||!salary) { showMsg('All fields are required.','at-msg','err'); return; }
+    db.teachers.push({ id: db.nextTid++, name:name, dept:dept, salary:salary, email:email });
+    closeModal('add-teacher');
+    ['at-name','at-dept','at-sal','at-email'].forEach(function(id){ document.getElementById(id).value=''; });
+    renderTeachers(); updateStats();
+  }
+
+  function renderTeachers() {
+    var q = (document.getElementById('t-search').value||'').toLowerCase();
+    var list = db.teachers.filter(function(t){
+      return t.name.toLowerCase().includes(q) || t.dept.toLowerCase().includes(q);
+    });
+    var wrap = document.getElementById('teacher-table-wrap');
+    if (!list.length) { wrap.innerHTML='<div class="empty">No teachers found.</div>'; return; }
+    var rows = list.map(function(t){
+      return '<tr>' +
+        '<td><div class="avatar avatar-green">'+initials(t.name)+'</div></td>' +
+        '<td style="font-weight:500">'+esc(t.name)+'</td>' +
+        '<td><span class="badge badge-success">T-'+String(t.id).padStart(3,'0')+'</span></td>' +
+        '<td>'+esc(t.dept)+'</td>' +
+        '<td>&#8377;'+t.salary.toLocaleString('en-IN')+'</td>' +
+        '<td style="color:var(--muted)">'+esc(t.email)+'</td>' +
+        '<td><div class="row" style="gap:6px">' +
+          '<button class="btn btn-sm" onclick="editTeacher('+t.id+')">Edit</button>' +
+          '<button class="btn btn-sm btn-danger" onclick="deleteTeacher('+t.id+')">Delete</button>' +
+        '</div></td>' +
+      '</tr>';
+    }).join('');
+    wrap.innerHTML = '<table><thead><tr><th></th><th>Name</th><th>ID</th><th>Dept</th><th>Salary</th><th>Email</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  }
+
+  function editTeacher(id) {
+    var t = db.teachers.find(function(x){ return x.id===id; });
+    editingTeacherId = id;
+    document.getElementById('et-name').value = t.name;
+    document.getElementById('et-dept').value = t.dept;
+    document.getElementById('et-sal').value  = t.salary;
+    document.getElementById('et-email').value = t.email;
+    openModal('edit-teacher');
+  }
+
+  function saveEditTeacher() {
+    var t = db.teachers.find(function(x){ return x.id===editingTeacherId; });
+    t.name   = document.getElementById('et-name').value.trim();
+    t.dept   = document.getElementById('et-dept').value.trim();
+    t.salary = parseInt(document.getElementById('et-sal').value);
+    t.email  = document.getElementById('et-email').value.trim();
+    closeModal('edit-teacher');
+    renderTeachers(); updateStats();
+  }
+
+  function deleteTeacher(id) {
+    if (!confirm('Delete this teacher? This cannot be undone.')) return;
+    db.teachers = db.teachers.filter(function(t){ return t.id!==id; });
+    renderTeachers(); updateStats();
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  document.querySelectorAll('.modal-overlay').forEach(function(bg){
+    bg.addEventListener('click', function(e){ if(e.target===bg) bg.classList.remove('open'); });
+  });
+</script>
+</body>
+</html>
